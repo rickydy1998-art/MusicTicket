@@ -1,0 +1,2223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>STAGEFRONT — Concert Tickets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root {
+  --bg: #080808;
+  --bg2: #0f0f0f;
+  --bg3: #161616;
+  --card: #111111;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --accent: #FF3C3C;
+  --accent2: #FF6B3C;
+  --gold: #F5C542;
+  --text: #F0EDE8;
+  --muted: #6B6862;
+  --muted2: #9B9690;
+  --green: #3CFF8F;
+  --blue: #3C9BFF;
+  --purple: #9B3CFF;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --shadow: 0 24px 60px rgba(0,0,0,0.6);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+
+/* ─── NAV ─── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px; height: 68px;
+  background: rgba(8,8,8,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo {
+  font-family: var(--font-display);
+  font-size: 28px;
+  letter-spacing: 2px;
+  color: var(--text);
+  cursor: pointer;
+}
+.nav-logo span { color: var(--accent); }
+.nav-links { display: flex; gap: 32px; list-style: none; }
+.nav-links a {
+  color: var(--muted2); text-decoration: none;
+  font-size: 13px; font-weight: 500; letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: color 0.2s;
+  cursor: pointer;
+}
+.nav-links a:hover, .nav-links a.active { color: var(--text); }
+.nav-actions { display: flex; gap: 12px; align-items: center; }
+.btn-ghost {
+  background: none; border: 1px solid var(--border2);
+  color: var(--text); padding: 8px 18px; border-radius: 8px;
+  font-family: var(--font-body); font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-primary {
+  background: var(--accent); border: none;
+  color: #fff; padding: 9px 20px; border-radius: 8px;
+  font-family: var(--font-body); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+.btn-primary:hover { background: #ff5252; transform: translateY(-1px); }
+
+/* ─── PAGES ─── */
+.page { display: none; min-height: 100vh; padding-top: 68px; }
+.page.active { display: block; }
+
+/* ─── HERO ─── */
+.hero {
+  position: relative; height: calc(100vh - 68px);
+  display: flex; align-items: center;
+  overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, #0a0208 0%, #080808 50%, #08080f 100%);
+}
+.hero-orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(80px); pointer-events: none;
+}
+.orb1 {
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(255,60,60,0.18) 0%, transparent 70%);
+  top: -100px; right: -100px;
+  animation: float1 8s ease-in-out infinite;
+}
+.orb2 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(155,60,255,0.12) 0%, transparent 70%);
+  bottom: -50px; left: 200px;
+  animation: float2 10s ease-in-out infinite;
+}
+.orb3 {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(60,155,255,0.1) 0%, transparent 70%);
+  top: 30%; left: -50px;
+  animation: float1 12s ease-in-out infinite reverse;
+}
+@keyframes float1 {
+  0%, 100% { transform: translate(0,0); }
+  50% { transform: translate(-30px, 30px); }
+}
+@keyframes float2 {
+  0%, 100% { transform: translate(0,0); }
+  50% { transform: translate(20px, -20px); }
+}
+
+.hero-grain {
+  position: absolute; inset: 0; opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+.hero-content {
+  position: relative; z-index: 2;
+  max-width: 1200px; margin: 0 auto; padding: 0 40px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255,60,60,0.1); border: 1px solid rgba(255,60,60,0.3);
+  border-radius: 100px; padding: 6px 14px; margin-bottom: 28px;
+  font-size: 11px; font-weight: 600; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--accent);
+}
+.pulse-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.5); }
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(72px, 8vw, 120px);
+  line-height: 0.92;
+  letter-spacing: 1px;
+  margin-bottom: 24px;
+}
+.hero-title em { font-style: normal; color: var(--accent); }
+.hero-subtitle {
+  color: var(--muted2); font-size: 16px; line-height: 1.7;
+  max-width: 440px; margin-bottom: 40px;
+}
+.hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }
+.btn-large {
+  padding: 14px 32px; font-size: 14px; font-weight: 600;
+  border-radius: 10px; cursor: pointer; transition: all 0.25s;
+  letter-spacing: 0.3px;
+}
+.btn-large.primary {
+  background: var(--accent); border: none; color: #fff;
+}
+.btn-large.primary:hover { background: #ff5252; transform: translateY(-2px); box-shadow: 0 12px 32px rgba(255,60,60,0.35); }
+.btn-large.outline {
+  background: none; border: 1px solid var(--border2); color: var(--text);
+}
+.btn-large.outline:hover { border-color: var(--text); }
+
+.hero-stats {
+  display: flex; gap: 40px; margin-top: 56px;
+  padding-top: 40px; border-top: 1px solid var(--border);
+}
+.stat-num {
+  font-family: var(--font-display); font-size: 40px;
+  color: var(--text); letter-spacing: 1px;
+}
+.stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+/* Featured card on hero right */
+.hero-card-stack { position: relative; height: 480px; }
+.hero-card {
+  position: absolute;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: transform 0.4s;
+}
+.hero-card-main {
+  width: 320px; height: 420px;
+  top: 0; right: 20px;
+  z-index: 3;
+}
+.hero-card-main:hover { transform: translateY(-8px) rotate(0deg); }
+.hero-card-back1 {
+  width: 300px; height: 400px;
+  top: 20px; right: 0;
+  z-index: 2;
+  transform: rotate(3deg);
+  opacity: 0.6;
+}
+.hero-card-back2 {
+  width: 280px; height: 380px;
+  top: 40px; right: -10px;
+  z-index: 1;
+  transform: rotate(6deg);
+  opacity: 0.3;
+}
+.card-img {
+  width: 100%; height: 200px; object-fit: cover;
+  background: linear-gradient(135deg, #1a0a0a, #2a0a1a);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 80px;
+}
+.card-body { padding: 20px; }
+.card-genre {
+  font-size: 10px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
+}
+.card-title { font-family: var(--font-display); font-size: 24px; line-height: 1; margin-bottom: 10px; }
+.card-meta { display: flex; gap: 16px; color: var(--muted2); font-size: 12px; margin-bottom: 16px; }
+.card-price-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 14px; border-top: 1px solid var(--border);
+}
+.card-price { font-family: var(--font-display); font-size: 28px; }
+.card-price span { font-size: 13px; color: var(--muted); font-family: var(--font-body); }
+.btn-sm {
+  background: var(--accent); color: #fff; border: none;
+  padding: 8px 16px; border-radius: 6px; font-size: 12px;
+  font-weight: 600; cursor: pointer; font-family: var(--font-body);
+  transition: all 0.2s;
+}
+.btn-sm:hover { background: #ff5252; }
+
+/* ─── SECTION ─── */
+.section { max-width: 1200px; margin: 0 auto; padding: 80px 40px; }
+.section-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: 48px;
+}
+.section-title { font-family: var(--font-display); font-size: 56px; line-height: 1; }
+.section-title em { font-style: normal; color: var(--accent); }
+.section-link {
+  color: var(--muted2); font-size: 13px; font-weight: 500;
+  text-decoration: none; letter-spacing: 0.5px;
+  text-transform: uppercase; cursor: pointer;
+  transition: color 0.2s;
+  border-bottom: 1px solid var(--border2); padding-bottom: 2px;
+}
+.section-link:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ─── SEARCH BAR ─── */
+.search-section {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 28px 0;
+}
+.search-inner {
+  max-width: 1200px; margin: 0 auto; padding: 0 40px;
+  display: flex; gap: 12px; align-items: center;
+}
+.search-wrap {
+  flex: 1; position: relative;
+}
+.search-input {
+  width: 100%; background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: 13px 16px 13px 44px;
+  color: var(--text); font-family: var(--font-body); font-size: 14px;
+  outline: none; transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--muted); }
+.search-icon {
+  position: absolute; left: 14px; top: 50%;
+  transform: translateY(-50%); color: var(--muted); font-size: 16px;
+}
+.search-select {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 13px 16px; color: var(--text);
+  font-family: var(--font-body); font-size: 14px;
+  outline: none; cursor: pointer; transition: border-color 0.2s;
+  min-width: 140px;
+}
+.search-select:focus { border-color: var(--accent); }
+
+/* ─── EVENT CARDS GRID ─── */
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+.event-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden;
+  cursor: pointer; transition: all 0.3s;
+  position: relative;
+}
+.event-card:hover {
+  border-color: var(--border2);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 48px rgba(0,0,0,0.5);
+}
+.event-img {
+  height: 200px; display: flex; align-items: center; justify-content: center;
+  font-size: 72px; position: relative; overflow: hidden;
+}
+.event-img-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.7) 100%);
+}
+.event-badge {
+  position: absolute; top: 14px; left: 14px;
+  background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.15);
+  backdrop-filter: blur(8px);
+  border-radius: 6px; padding: 4px 10px;
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.event-badge.hot { color: var(--accent); border-color: rgba(255,60,60,0.3); }
+.event-badge.new { color: var(--green); border-color: rgba(60,255,143,0.3); }
+.event-badge.soon { color: var(--gold); border-color: rgba(245,197,66,0.3); }
+
+.event-body { padding: 20px; }
+.event-genre {
+  font-size: 10px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
+}
+.event-title {
+  font-family: var(--font-display); font-size: 26px;
+  line-height: 1.05; margin-bottom: 12px;
+}
+.event-meta { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.event-meta-row {
+  display: flex; align-items: center; gap: 8px;
+  color: var(--muted2); font-size: 13px;
+}
+.meta-icon { font-size: 13px; width: 16px; flex-shrink: 0; }
+.event-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 16px; border-top: 1px solid var(--border);
+}
+.event-price { font-family: var(--font-display); font-size: 26px; }
+.event-price small { font-size: 12px; color: var(--muted); font-family: var(--font-body); }
+.event-avail {
+  font-size: 11px; color: var(--muted2); margin-top: 2px;
+}
+.event-avail.low { color: var(--accent); }
+
+/* ─── FILTERS ─── */
+.events-page-layout {
+  display: grid; grid-template-columns: 260px 1fr; gap: 40px;
+  align-items: start;
+}
+.filters-panel {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 28px;
+  position: sticky; top: 88px;
+}
+.filter-title {
+  font-family: var(--font-display); font-size: 22px; margin-bottom: 24px;
+}
+.filter-group { margin-bottom: 28px; }
+.filter-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 12px;
+}
+.filter-options { display: flex; flex-direction: column; gap: 8px; }
+.filter-option {
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer; font-size: 14px; color: var(--muted2);
+  transition: color 0.2s;
+}
+.filter-option:hover { color: var(--text); }
+.filter-option input { accent-color: var(--accent); }
+.filter-option.selected { color: var(--text); }
+.range-input {
+  width: 100%; accent-color: var(--accent);
+  appearance: none; height: 3px; border-radius: 2px;
+  background: linear-gradient(to right, var(--accent) 60%, var(--border2) 60%);
+  outline: none; cursor: pointer;
+}
+.price-labels {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--muted2); margin-top: 8px;
+}
+
+/* ─── SORT BAR ─── */
+.sort-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 28px;
+}
+.sort-bar-left { font-size: 13px; color: var(--muted2); }
+.sort-bar-left strong { color: var(--text); }
+.sort-tabs { display: flex; gap: 4px; }
+.sort-tab {
+  background: none; border: 1px solid var(--border);
+  color: var(--muted2); padding: 6px 14px; border-radius: 6px;
+  font-size: 12px; cursor: pointer; transition: all 0.2s;
+  font-family: var(--font-body); font-weight: 500;
+}
+.sort-tab:hover { border-color: var(--border2); color: var(--text); }
+.sort-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* ─── EVENT DETAIL ─── */
+.event-detail-hero {
+  height: 440px; display: flex; align-items: flex-end;
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, #0a0a0a, #1a0a1a);
+}
+.event-detail-bg {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 200px; opacity: 0.12; filter: blur(30px);
+}
+.event-detail-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(8,8,8,1) 0%, rgba(8,8,8,0.4) 60%, transparent 100%);
+}
+.event-detail-title-block {
+  position: relative; z-index: 2; padding: 40px;
+  max-width: 1200px; margin: 0 auto; width: 100%;
+}
+.event-detail-genre {
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 12px;
+}
+.event-detail-name {
+  font-family: var(--font-display);
+  font-size: clamp(52px, 6vw, 88px);
+  line-height: 0.95;
+  margin-bottom: 16px;
+}
+.event-detail-meta {
+  display: flex; gap: 28px; flex-wrap: wrap;
+}
+.event-detail-meta-item {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px; color: var(--muted2);
+}
+
+.event-detail-body {
+  max-width: 1200px; margin: 0 auto; padding: 48px 40px;
+  display: grid; grid-template-columns: 1fr 380px; gap: 60px;
+  align-items: start;
+}
+.about-section h3 { font-family: var(--font-display); font-size: 32px; margin-bottom: 16px; }
+.about-text { color: var(--muted2); line-height: 1.8; margin-bottom: 32px; }
+
+/* Countdown */
+.countdown-block {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px;
+  display: flex; gap: 0; margin-bottom: 32px;
+}
+.countdown-unit {
+  flex: 1; text-align: center; position: relative;
+}
+.countdown-unit + .countdown-unit::before {
+  content: ':'; position: absolute; left: 0; top: 14px;
+  font-family: var(--font-display); font-size: 32px;
+  color: var(--accent);
+}
+.countdown-num {
+  font-family: var(--font-display); font-size: 48px;
+  color: var(--text); line-height: 1;
+}
+.countdown-label {
+  font-size: 10px; color: var(--muted); letter-spacing: 2px;
+  text-transform: uppercase; margin-top: 4px;
+}
+
+/* Ticket tiers */
+.ticket-panel {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 28px;
+  position: sticky; top: 88px;
+}
+.ticket-panel-title { font-family: var(--font-display); font-size: 28px; margin-bottom: 8px; }
+.ticket-panel-sub { color: var(--muted2); font-size: 13px; margin-bottom: 24px; }
+
+.tier-card {
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 18px; margin-bottom: 12px; cursor: pointer;
+  transition: all 0.2s; position: relative;
+}
+.tier-card:hover { border-color: var(--border2); }
+.tier-card.selected {
+  border-color: var(--accent);
+  background: rgba(255,60,60,0.05);
+}
+.tier-card.selected::after {
+  content: '✓'; position: absolute; top: 16px; right: 16px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+  display: flex;
+}
+.tier-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+.tier-perks { font-size: 12px; color: var(--muted2); margin-bottom: 10px; }
+.tier-price { font-family: var(--font-display); font-size: 28px; }
+.tier-price small { font-size: 12px; color: var(--muted); font-family: var(--font-body); }
+.tier-avail { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.tier-avail.low { color: var(--accent); }
+
+.qty-row {
+  display: flex; align-items: center; gap: 12px;
+  margin: 20px 0;
+}
+.qty-label { font-size: 13px; color: var(--muted2); flex: 1; }
+.qty-controls { display: flex; align-items: center; gap: 12px; }
+.qty-btn {
+  width: 32px; height: 32px; border-radius: 8px;
+  border: 1px solid var(--border2); background: none; color: var(--text);
+  font-size: 18px; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; transition: all 0.2s;
+}
+.qty-btn:hover { border-color: var(--accent); color: var(--accent); }
+.qty-num { font-family: var(--font-display); font-size: 24px; width: 32px; text-align: center; }
+
+.total-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 0; border-top: 1px solid var(--border);
+  margin-top: 8px; margin-bottom: 16px;
+}
+.total-label { font-size: 13px; color: var(--muted2); }
+.total-amount { font-family: var(--font-display); font-size: 36px; }
+
+.btn-buy {
+  width: 100%; background: var(--accent); border: none;
+  color: #fff; padding: 16px; border-radius: 10px;
+  font-family: var(--font-body); font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: all 0.25s; letter-spacing: 0.5px;
+}
+.btn-buy:hover { background: #ff5252; transform: translateY(-2px); box-shadow: 0 12px 32px rgba(255,60,60,0.35); }
+
+/* ─── MODAL / OVERLAY ─── */
+.overlay {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 40px;
+  width: 100%; max-width: 480px;
+  transform: translateY(20px); transition: transform 0.3s;
+  max-height: 90vh; overflow-y: auto;
+}
+.overlay.open .modal { transform: translateY(0); }
+.modal-title { font-family: var(--font-display); font-size: 36px; margin-bottom: 8px; }
+.modal-sub { color: var(--muted2); font-size: 13px; margin-bottom: 28px; }
+.modal-close {
+  position: absolute; top: 20px; right: 20px;
+  background: none; border: 1px solid var(--border);
+  color: var(--muted2); width: 36px; height: 36px;
+  border-radius: 8px; cursor: pointer; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.modal-close:hover { border-color: var(--accent); color: var(--accent); }
+
+.form-group { margin-bottom: 16px; }
+.form-label { font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted2); margin-bottom: 6px; display: block; }
+.form-input {
+  width: 100%; background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 14px; color: var(--text);
+  font-family: var(--font-body); font-size: 14px; outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus { border-color: var(--accent); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-divider {
+  display: flex; align-items: center; gap: 16px;
+  margin: 20px 0; color: var(--muted); font-size: 12px;
+}
+.form-divider::before, .form-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+.tab-row { display: flex; margin-bottom: 28px; border-bottom: 1px solid var(--border); }
+.tab-btn {
+  background: none; border: none; color: var(--muted);
+  padding: 10px 20px; cursor: pointer; font-family: var(--font-body);
+  font-size: 14px; font-weight: 500;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: all 0.2s;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ─── CHECKOUT / CONFIRMATION ─── */
+.checkout-layout {
+  max-width: 900px; margin: 0 auto; padding: 60px 40px;
+  display: grid; grid-template-columns: 1fr 340px; gap: 40px;
+}
+.checkout-title { font-family: var(--font-display); font-size: 48px; margin-bottom: 8px; }
+.checkout-step {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 32px;
+}
+.step-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid var(--border2); color: var(--muted);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0;
+}
+.step-dot.done { border-color: var(--accent); background: var(--accent); color: #fff; }
+.step-dot.active { border-color: var(--accent); color: var(--accent); }
+.step-line { flex: 1; height: 1px; background: var(--border); }
+.step-line.done { background: var(--accent); }
+
+.order-summary-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 24px;
+  position: sticky; top: 88px;
+}
+.order-event-row {
+  display: flex; gap: 16px; align-items: center; margin-bottom: 20px;
+  padding-bottom: 20px; border-bottom: 1px solid var(--border);
+}
+.order-event-emoji { font-size: 40px; background: var(--bg3); border-radius: 10px; padding: 12px; }
+.order-event-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+.order-event-meta { font-size: 12px; color: var(--muted2); }
+.order-line {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 14px; margin-bottom: 10px;
+}
+.order-line.muted { color: var(--muted2); }
+.order-line.total {
+  margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);
+  font-weight: 700; font-size: 16px;
+}
+.order-line.total .amount { font-family: var(--font-display); font-size: 28px; }
+
+/* Payment form */
+.card-visual {
+  background: linear-gradient(135deg, #1a0808, #1a0a1a);
+  border: 1px solid var(--border); border-radius: 14px;
+  padding: 24px; margin-bottom: 24px; position: relative;
+  height: 160px; display: flex; flex-direction: column; justify-content: space-between;
+}
+.card-visual-brand {
+  font-family: var(--font-display); font-size: 24px;
+  letter-spacing: 2px; opacity: 0.6;
+}
+.card-visual-num {
+  font-family: var(--font-mono); font-size: 18px; letter-spacing: 4px; color: var(--text);
+}
+.card-visual-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+.card-visual-name { font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+
+/* ─── E-TICKET ─── */
+.eticket-wrap {
+  max-width: 520px; margin: 0 auto; padding: 60px 40px;
+}
+.eticket {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 20px; overflow: hidden;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+}
+.eticket-top {
+  background: linear-gradient(135deg, #1a0808, #1a0a1a);
+  padding: 32px; border-bottom: 2px dashed var(--border2);
+  position: relative;
+}
+.eticket-logo { font-family: var(--font-display); font-size: 20px; letter-spacing: 2px; margin-bottom: 24px; opacity: 0.6; }
+.eticket-event { font-family: var(--font-display); font-size: 44px; line-height: 1; margin-bottom: 4px; }
+.eticket-artist { color: var(--muted2); font-size: 14px; margin-bottom: 24px; }
+.eticket-details { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.eticket-detail-label { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2px; }
+.eticket-detail-val { font-size: 14px; font-weight: 600; }
+.eticket-dots {
+  display: flex; gap: 0;
+  position: absolute; bottom: -16px; left: -16px; right: -16px;
+}
+.eticket-dot-left, .eticket-dot-right {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--bg);
+  flex-shrink: 0;
+}
+.eticket-dot-left { margin-right: auto; }
+.eticket-dot-right { margin-left: auto; }
+
+.eticket-bottom {
+  padding: 36px 32px 32px;
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+}
+.eticket-qr {
+  background: #fff; border-radius: 10px; padding: 12px;
+  flex-shrink: 0;
+}
+.eticket-info { flex: 1; }
+.eticket-tier {
+  font-family: var(--font-display); font-size: 32px; margin-bottom: 6px;
+}
+.eticket-seat { color: var(--muted2); font-size: 13px; margin-bottom: 16px; }
+.eticket-id { font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 2px; }
+
+.success-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 32px; }
+
+/* ─── DASHBOARD ─── */
+.dashboard-layout {
+  max-width: 1100px; margin: 0 auto; padding: 48px 40px;
+  display: grid; grid-template-columns: 220px 1fr; gap: 40px;
+  align-items: start;
+}
+.sidebar {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 24px;
+  position: sticky; top: 88px;
+}
+.sidebar-avatar {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; margin-bottom: 12px;
+}
+.sidebar-name { font-weight: 600; font-size: 15px; }
+.sidebar-email { font-size: 12px; color: var(--muted2); margin-bottom: 24px; }
+.sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
+.sidebar-link {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 8px; cursor: pointer;
+  font-size: 14px; color: var(--muted2); transition: all 0.2s;
+  font-weight: 500;
+}
+.sidebar-link:hover { background: var(--bg3); color: var(--text); }
+.sidebar-link.active { background: rgba(255,60,60,0.1); color: var(--accent); }
+.sidebar-link span { font-size: 16px; }
+
+.dashboard-content {}
+.dashboard-title { font-family: var(--font-display); font-size: 44px; margin-bottom: 32px; }
+
+.ticket-history-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px;
+  display: flex; gap: 20px; align-items: center;
+  margin-bottom: 16px; cursor: pointer;
+  transition: border-color 0.2s;
+}
+.ticket-history-card:hover { border-color: var(--border2); }
+.ticket-event-icon {
+  font-size: 40px; background: var(--bg3);
+  border-radius: 10px; padding: 14px; flex-shrink: 0;
+}
+.ticket-event-info { flex: 1; }
+.ticket-event-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+.ticket-event-meta { font-size: 13px; color: var(--muted2); }
+.ticket-status {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; padding: 5px 12px; border-radius: 100px;
+}
+.ticket-status.upcoming { background: rgba(60,255,143,0.1); color: var(--green); }
+.ticket-status.past { background: rgba(107,104,98,0.15); color: var(--muted2); }
+.ticket-download-btn {
+  background: none; border: 1px solid var(--border2); color: var(--text);
+  padding: 8px 16px; border-radius: 7px; cursor: pointer;
+  font-size: 12px; font-weight: 600; margin-top: 8px;
+  font-family: var(--font-body); transition: all 0.2s; display: inline-flex; gap: 6px; align-items: center;
+}
+.ticket-download-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Analytics cards */
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+.stat-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px;
+}
+.stat-card-num { font-family: var(--font-display); font-size: 40px; color: var(--text); }
+.stat-card-label { font-size: 12px; color: var(--muted2); text-transform: uppercase; letter-spacing: 1px; }
+
+/* Genre tags */
+.genre-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.genre-tag {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 100px; padding: 6px 14px; font-size: 13px;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.genre-tag:hover, .genre-tag.active { background: rgba(255,60,60,0.1); border-color: var(--accent); color: var(--accent); }
+
+/* ─── NOTIFICATION TOAST ─── */
+.toast-container { position: fixed; bottom: 28px; right: 28px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+.toast {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 20px;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+  min-width: 280px; max-width: 380px;
+  transform: translateX(120%); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  font-size: 14px;
+}
+.toast.show { transform: translateX(0); }
+.toast-icon { font-size: 20px; flex-shrink: 0; }
+.toast-msg { flex: 1; }
+.toast.success { border-left: 3px solid var(--green); }
+.toast.error { border-left: 3px solid var(--accent); }
+.toast.info { border-left: 3px solid var(--blue); }
+
+/* ─── FEATURED ARTISTS ─── */
+.artists-scroll {
+  display: flex; gap: 16px; overflow-x: auto; padding-bottom: 8px;
+}
+.artists-scroll::-webkit-scrollbar { height: 3px; }
+.artist-card {
+  flex-shrink: 0; width: 160px; text-align: center;
+  cursor: pointer; transition: transform 0.25s;
+}
+.artist-card:hover { transform: translateY(-4px); }
+.artist-avatar {
+  width: 100px; height: 100px; border-radius: 50%;
+  margin: 0 auto 12px;
+  display: flex; align-items: center; justify-content: center; font-size: 44px;
+  border: 2px solid var(--border);
+  background: var(--card);
+}
+.artist-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+.artist-genre { font-size: 12px; color: var(--muted2); }
+.artist-events { font-size: 11px; color: var(--accent); margin-top: 4px; }
+
+/* ─── FOOTER ─── */
+footer {
+  border-top: 1px solid var(--border); padding: 48px 40px;
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 40px;
+}
+.footer-brand { grid-column: span 1; }
+.footer-logo { font-family: var(--font-display); font-size: 28px; margin-bottom: 10px; }
+.footer-logo span { color: var(--accent); }
+.footer-tagline { color: var(--muted); font-size: 13px; line-height: 1.6; }
+.footer-col-title { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+.footer-links { display: flex; flex-direction: column; gap: 8px; }
+.footer-link { color: var(--muted2); font-size: 13px; text-decoration: none; cursor: pointer; transition: color 0.2s; }
+.footer-link:hover { color: var(--accent); }
+.footer-bottom {
+  border-top: 1px solid var(--border); padding: 20px 40px;
+  display: flex; justify-content: space-between; align-items: center;
+  color: var(--muted); font-size: 12px;
+  max-width: 1200px; margin: 0 auto;
+}
+
+/* ─── ADMIN ─── */
+.admin-table {
+  width: 100%; border-collapse: collapse; margin-top: 24px;
+}
+.admin-table th {
+  text-align: left; padding: 10px 16px; font-size: 11px;
+  color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.admin-table td {
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.admin-table tr:hover td { background: var(--bg3); }
+.admin-tag {
+  padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.admin-tag.live { background: rgba(60,255,143,0.1); color: var(--green); }
+.admin-tag.sold { background: rgba(255,60,60,0.1); color: var(--accent); }
+.admin-tag.upcoming { background: rgba(245,197,66,0.1); color: var(--gold); }
+.action-btn {
+  background: none; border: 1px solid var(--border); color: var(--muted2);
+  padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;
+  font-family: var(--font-body); transition: all 0.2s; margin-right: 4px;
+}
+.action-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ─── MISC ─── */
+.tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 6px; padding: 5px 12px; font-size: 12px; color: var(--muted2);
+}
+
+@media (max-width: 900px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  .hero-content { grid-template-columns: 1fr; gap: 40px; }
+  .hero-card-stack { display: none; }
+  .events-page-layout { grid-template-columns: 1fr; }
+  .filters-panel { position: static; }
+  .event-detail-body { grid-template-columns: 1fr; }
+  .checkout-layout { grid-template-columns: 1fr; }
+  .dashboard-layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; }
+  footer { grid-template-columns: 1fr 1fr; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .section { padding: 48px 20px; }
+  .hero-content { padding: 0 20px; }
+  .hero { height: auto; padding: 60px 0; }
+  .search-inner { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" onclick="showPage('home')">STAGE<span>FRONT</span></div>
+  <ul class="nav-links">
+    <li><a onclick="showPage('events')" id="nav-events">Events</a></li>
+    <li><a onclick="showPage('dashboard')" id="nav-dash">My Tickets</a></li>
+    <li><a onclick="showPage('admin')" id="nav-admin">Admin</a></li>
+  </ul>
+  <div class="nav-actions">
+    <button class="btn-ghost" onclick="openAuth('login')">Log In</button>
+    <button class="btn-primary" onclick="openAuth('signup')">Sign Up</button>
+  </div>
+</nav>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- AUTH MODAL -->
+<div class="overlay" id="authOverlay">
+  <div class="modal" style="position:relative">
+    <button class="modal-close" onclick="closeModal('authOverlay')">✕</button>
+    <div class="tab-row">
+      <button class="tab-btn active" id="loginTab" onclick="switchAuthTab('login')">Log In</button>
+      <button class="tab-btn" id="signupTab" onclick="switchAuthTab('signup')">Sign Up</button>
+    </div>
+    <div id="loginForm">
+      <p class="modal-sub">Welcome back. Ready to experience live music?</p>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" placeholder="you@example.com" id="loginEmail"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" placeholder="••••••••" id="loginPass"/>
+      </div>
+      <button class="btn-primary btn-large" style="width:100%;margin-top:8px" onclick="handleLogin()">Log In</button>
+      <div class="form-divider">or continue with</div>
+      <button class="btn-ghost btn-large" style="width:100%">🔵 Continue with Google</button>
+    </div>
+    <div id="signupForm" style="display:none">
+      <p class="modal-sub">Join thousands of concert-goers on STAGEFRONT.</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First Name</label>
+          <input class="form-input" type="text" placeholder="Amara"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          <input class="form-input" type="text" placeholder="Obi"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" placeholder="you@example.com"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" placeholder="Min. 8 characters"/>
+      </div>
+      <button class="btn-primary btn-large" style="width:100%;margin-top:8px" onclick="handleSignup()">Create Account</button>
+      <div class="form-divider">or continue with</div>
+      <button class="btn-ghost btn-large" style="width:100%">🔵 Continue with Google</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGES -->
+
+<!-- ═══════════════ HOME PAGE ═══════════════ -->
+<div class="page active" id="page-home">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-bg">
+      <div class="hero-orb orb1"></div>
+      <div class="hero-orb orb2"></div>
+      <div class="hero-orb orb3"></div>
+      <div class="hero-grain"></div>
+    </div>
+    <div class="hero-content">
+      <div>
+        <div class="hero-badge">
+          <div class="pulse-dot"></div>
+          Live Events · Nigeria & Beyond
+        </div>
+        <h1 class="hero-title">YOUR <em>FRONT</em><br>ROW<br>AWAITS</h1>
+        <p class="hero-subtitle">Discover Africa's biggest concerts, from Lagos to London. Book tickets in seconds and experience music like never before.</p>
+        <div class="hero-actions">
+          <button class="btn-large primary" onclick="showPage('events')">Browse Events</button>
+          <button class="btn-large outline" onclick="openAuth('signup')">Get Tickets →</button>
+        </div>
+        <div class="hero-stats">
+          <div>
+            <div class="stat-num">500+</div>
+            <div class="stat-label">Events Monthly</div>
+          </div>
+          <div>
+            <div class="stat-num">2M+</div>
+            <div class="stat-label">Tickets Sold</div>
+          </div>
+          <div>
+            <div class="stat-num">120+</div>
+            <div class="stat-label">Partner Artists</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-card-stack">
+        <div class="hero-card hero-card-back2">
+          <div class="card-img" style="background:linear-gradient(135deg,#0a1a0a,#1a2a1a)">🎸</div>
+        </div>
+        <div class="hero-card hero-card-back1">
+          <div class="card-img" style="background:linear-gradient(135deg,#1a1a0a,#2a1a0a)">🎷</div>
+        </div>
+        <div class="hero-card hero-card-main" onclick="showEventDetail(0)">
+          <div class="card-img" style="background:linear-gradient(135deg,#1a0a0a,#2a0a1a)">🎤</div>
+          <div class="card-body">
+            <div class="card-genre">Afrobeats · Lagos</div>
+            <div class="card-title">BURNA BOY LIVE</div>
+            <div class="card-meta">
+              <span>📅 Dec 31, 2025</span>
+              <span>📍 Eko Atlantic</span>
+            </div>
+            <div class="card-price-row">
+              <div>
+                <div class="card-price">₦45K <span>from</span></div>
+              </div>
+              <button class="btn-sm">Get Tickets</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEARCH BAR -->
+  <div class="search-section">
+    <div class="search-inner">
+      <div class="search-wrap" style="flex:2">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" placeholder="Search artists, events, or venues..." id="homeSearch" oninput="handleSearch(this.value)"/>
+      </div>
+      <select class="search-select" id="homeLocation">
+        <option value="">📍 All Locations</option>
+        <option>Lagos</option><option>Abuja</option><option>Port Harcourt</option>
+        <option>London</option><option>New York</option>
+      </select>
+      <select class="search-select" id="homeGenre">
+        <option value="">🎵 All Genres</option>
+        <option>Afrobeats</option><option>Hip-hop</option><option>R&B</option>
+        <option>Highlife</option><option>Amapiano</option><option>Afro-fusion</option>
+      </select>
+      <button class="btn-primary" style="padding:13px 24px" onclick="showPage('events')">Search</button>
+    </div>
+  </div>
+
+  <!-- FEATURED EVENTS -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">HOT <em>EVENTS</em></h2>
+      <span class="section-link" onclick="showPage('events')">View all events →</span>
+    </div>
+    <div class="events-grid" id="homeFeaturedGrid"></div>
+  </div>
+
+  <!-- ARTISTS -->
+  <div style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+    <div class="section" style="padding-bottom:48px">
+      <div class="section-header">
+        <h2 class="section-title">TOP <em>ARTISTS</em></h2>
+      </div>
+      <div class="artists-scroll" id="artistsScroll"></div>
+    </div>
+  </div>
+
+  <!-- GENRE TAGS -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">BROWSE BY<br><em>GENRE</em></h2>
+    </div>
+    <div class="genre-tags" id="homeGenreTags"></div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-brand">
+      <div class="footer-logo">STAGE<span>FRONT</span></div>
+      <p class="footer-tagline">Your front row to Africa's greatest live music experiences.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Events</div>
+      <div class="footer-links">
+        <span class="footer-link" onclick="showPage('events')">All Events</span>
+        <span class="footer-link">Afrobeats</span>
+        <span class="footer-link">Hip-Hop</span>
+        <span class="footer-link">Festivals</span>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Company</div>
+      <div class="footer-links">
+        <span class="footer-link">About</span>
+        <span class="footer-link">Careers</span>
+        <span class="footer-link">Press</span>
+        <span class="footer-link">Blog</span>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Support</div>
+      <div class="footer-links">
+        <span class="footer-link">Help Center</span>
+        <span class="footer-link">Contact Us</span>
+        <span class="footer-link">Refund Policy</span>
+        <span class="footer-link">Privacy</span>
+      </div>
+    </div>
+  </footer>
+  <div class="footer-bottom">
+    <span>© 2025 STAGEFRONT. All rights reserved.</span>
+    <span style="display:flex;gap:16px">
+      <span class="footer-link">🐦 Twitter</span>
+      <span class="footer-link">📸 Instagram</span>
+      <span class="footer-link">💼 LinkedIn</span>
+    </span>
+  </div>
+</div>
+
+<!-- ═══════════════ EVENTS PAGE ═══════════════ -->
+<div class="page" id="page-events">
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">ALL <em>EVENTS</em></h2>
+    </div>
+
+    <!-- Search + genre quick filters -->
+    <div style="margin-bottom:28px">
+      <div class="search-inner" style="padding:0;margin-bottom:16px">
+        <div class="search-wrap" style="flex:1">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" placeholder="Search events..." id="eventsSearch" oninput="filterEvents()"/>
+        </div>
+      </div>
+      <div class="genre-tags" id="eventsGenreTags"></div>
+    </div>
+
+    <div class="events-page-layout">
+      <!-- FILTERS -->
+      <div class="filters-panel">
+        <div class="filter-title">Filters</div>
+
+        <div class="filter-group">
+          <div class="filter-label">Location</div>
+          <div class="filter-options">
+            <label class="filter-option"><input type="checkbox" value="Lagos" onchange="filterEvents()"> Lagos</label>
+            <label class="filter-option"><input type="checkbox" value="Abuja" onchange="filterEvents()"> Abuja</label>
+            <label class="filter-option"><input type="checkbox" value="Port Harcourt" onchange="filterEvents()"> Port Harcourt</label>
+            <label class="filter-option"><input type="checkbox" value="London" onchange="filterEvents()"> London</label>
+            <label class="filter-option"><input type="checkbox" value="New York" onchange="filterEvents()"> New York</label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-label">Date</div>
+          <div class="filter-options">
+            <label class="filter-option"><input type="radio" name="dateFilter" value="all" checked onchange="filterEvents()"> All Dates</label>
+            <label class="filter-option"><input type="radio" name="dateFilter" value="week" onchange="filterEvents()"> This Week</label>
+            <label class="filter-option"><input type="radio" name="dateFilter" value="month" onchange="filterEvents()"> This Month</label>
+            <label class="filter-option"><input type="radio" name="dateFilter" value="3months" onchange="filterEvents()"> Next 3 Months</label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-label">Price Range</div>
+          <input type="range" class="range-input" min="0" max="200000" value="200000" step="5000" id="priceRange" oninput="updatePriceLabel(this.value);filterEvents()"/>
+          <div class="price-labels">
+            <span>₦0</span>
+            <span id="priceLabel">Up to ₦200K</span>
+          </div>
+        </div>
+
+        <button class="btn-ghost" style="width:100%;margin-top:8px" onclick="clearFilters()">Clear All Filters</button>
+      </div>
+
+      <!-- EVENTS LIST -->
+      <div>
+        <div class="sort-bar">
+          <div class="sort-bar-left"><strong id="eventsCount">0</strong> events found</div>
+          <div class="sort-tabs">
+            <button class="sort-tab active" onclick="sortEvents('popular',this)">Popular</button>
+            <button class="sort-tab" onclick="sortEvents('date',this)">Date</button>
+            <button class="sort-tab" onclick="sortEvents('price-asc',this)">Price ↑</button>
+            <button class="sort-tab" onclick="sortEvents('price-desc',this)">Price ↓</button>
+          </div>
+        </div>
+        <div class="events-grid" id="eventsGrid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ EVENT DETAIL PAGE ═══════════════ -->
+<div class="page" id="page-detail">
+  <div id="detailContent"></div>
+</div>
+
+<!-- ═══════════════ CHECKOUT PAGE ═══════════════ -->
+<div class="page" id="page-checkout">
+  <div class="checkout-layout">
+    <div>
+      <div class="checkout-title">CHECKOUT</div>
+      <div class="checkout-step" style="margin-bottom:40px">
+        <div class="step-dot done">✓</div>
+        <div class="step-line done"></div>
+        <div class="step-dot done">✓</div>
+        <div class="step-line"></div>
+        <div class="step-dot active">3</div>
+      </div>
+
+      <h3 style="font-family:var(--font-display);font-size:28px;margin-bottom:24px">Payment Details</h3>
+
+      <div class="card-visual">
+        <div class="card-visual-brand">STAGEFRONT</div>
+        <div class="card-visual-num" id="cardNumDisplay">•••• •••• •••• ••••</div>
+        <div class="card-visual-bottom">
+          <div>
+            <div class="card-visual-name" id="cardNameDisplay">YOUR NAME</div>
+            <div style="font-size:11px;color:var(--muted)">CARDHOLDER</div>
+          </div>
+          <div>
+            <div class="card-visual-name" id="cardExpDisplay">MM/YY</div>
+            <div style="font-size:11px;color:var(--muted)">EXPIRES</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Cardholder Name</label>
+        <input class="form-input" placeholder="Amara Johnson" id="cardName" oninput="cardNameDisplay.textContent=this.value||'YOUR NAME'"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Card Number</label>
+        <input class="form-input" placeholder="4242 4242 4242 4242" id="cardNum" maxlength="19"
+          oninput="this.value=this.value.replace(/\D/g,'').replace(/(.{4})/g,'$1 ').trim();cardNumDisplay.textContent=this.value||'•••• •••• •••• ••••'"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Expiry Date</label>
+          <input class="form-input" placeholder="MM/YY" id="cardExp" maxlength="5"
+            oninput="cardExpDisplay.textContent=this.value||'MM/YY'"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">CVV</label>
+          <input class="form-input" placeholder="•••" maxlength="4" type="password"/>
+        </div>
+      </div>
+
+      <div style="background:rgba(60,155,255,0.06);border:1px solid rgba(60,155,255,0.2);border-radius:10px;padding:14px 16px;margin:20px 0;font-size:13px;color:var(--muted2)">
+        🔒 Your payment is secured with 256-bit SSL encryption and processed via Paystack.
+      </div>
+
+      <button class="btn-primary btn-large" style="width:100%" onclick="processPayment()">
+        Complete Purchase
+      </button>
+    </div>
+
+    <div class="order-summary-card">
+      <h3 style="font-family:var(--font-display);font-size:24px;margin-bottom:20px">Order Summary</h3>
+      <div id="checkoutOrderSummary"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ CONFIRMATION PAGE ═══════════════ -->
+<div class="page" id="page-confirm">
+  <div class="eticket-wrap">
+    <div style="text-align:center;margin-bottom:40px">
+      <div style="font-size:64px;margin-bottom:16px">🎉</div>
+      <h2 style="font-family:var(--font-display);font-size:52px;margin-bottom:8px">YOU'RE IN!</h2>
+      <p style="color:var(--muted2)">Your e-ticket has been generated. Check your email for a copy.</p>
+    </div>
+
+    <div class="eticket" id="eticketCard">
+      <div class="eticket-top">
+        <div class="eticket-logo">STAGE<span style="color:var(--accent)">FRONT</span></div>
+        <div class="eticket-event" id="et-event">BURNA BOY LIVE</div>
+        <div class="eticket-artist" id="et-artist">Eko Atlantic City Arena · Lagos</div>
+        <div class="eticket-details">
+          <div>
+            <div class="eticket-detail-label">Date</div>
+            <div class="eticket-detail-val" id="et-date">Dec 31, 2025</div>
+          </div>
+          <div>
+            <div class="eticket-detail-label">Time</div>
+            <div class="eticket-detail-val" id="et-time">8:00 PM WAT</div>
+          </div>
+          <div>
+            <div class="eticket-detail-label">Ticket Type</div>
+            <div class="eticket-detail-val" id="et-tier">VIP</div>
+          </div>
+          <div>
+            <div class="eticket-detail-label">Qty</div>
+            <div class="eticket-detail-val" id="et-qty">×2</div>
+          </div>
+        </div>
+      </div>
+      <div class="eticket-bottom">
+        <div class="eticket-info">
+          <div class="eticket-tier" id="et-tier2">VIP PASS</div>
+          <div class="eticket-seat">Section A · Row 1</div>
+          <div class="eticket-id" id="et-id">TKT-XXXX-XXXX</div>
+        </div>
+        <div class="eticket-qr">
+          <div id="qrcode" style="width:100px;height:100px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="success-actions">
+      <button class="btn-primary btn-large" onclick="downloadTicket()">⬇ Download E-Ticket (PDF)</button>
+      <button class="btn-ghost btn-large" onclick="showPage('dashboard')">View My Tickets</button>
+      <button class="btn-ghost btn-large" onclick="showPage('home')">Back to Home</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DASHBOARD PAGE ═══════════════ -->
+<div class="page" id="page-dashboard">
+  <div class="dashboard-layout">
+    <div class="sidebar">
+      <div class="sidebar-avatar">👤</div>
+      <div class="sidebar-name" id="dashUsername">Amara Johnson</div>
+      <div class="sidebar-email" id="dashEmail">amara@email.com</div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-link active" onclick="switchDashTab('tickets',this)"><span>🎫</span> My Tickets</div>
+        <div class="sidebar-link" onclick="switchDashTab('wishlist',this)"><span>❤️</span> Wishlist</div>
+        <div class="sidebar-link" onclick="switchDashTab('history',this)"><span>🕐</span> History</div>
+        <div class="sidebar-link" onclick="switchDashTab('settings',this)"><span>⚙️</span> Settings</div>
+      </nav>
+    </div>
+
+    <div class="dashboard-content">
+      <div id="dashTickets">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card-num">4</div>
+            <div class="stat-card-label">Upcoming Events</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-num">12</div>
+            <div class="stat-card-label">Events Attended</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-num">₦284K</div>
+            <div class="stat-card-label">Total Spent</div>
+          </div>
+        </div>
+        <h2 class="dashboard-title">MY TICKETS</h2>
+        <div id="dashTicketsList"></div>
+      </div>
+
+      <div id="dashWishlist" style="display:none">
+        <h2 class="dashboard-title">WISHLIST</h2>
+        <div class="events-grid" id="wishlistGrid"></div>
+      </div>
+
+      <div id="dashHistory" style="display:none">
+        <h2 class="dashboard-title">HISTORY</h2>
+        <div id="historyList"></div>
+      </div>
+
+      <div id="dashSettings" style="display:none">
+        <h2 class="dashboard-title">SETTINGS</h2>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px;max-width:500px">
+          <div class="form-group">
+            <label class="form-label">Display Name</label>
+            <input class="form-input" value="Amara Johnson"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-input" type="email" value="amara@email.com"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input class="form-input" type="tel" placeholder="+234 800 000 0000"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">New Password</label>
+            <input class="form-input" type="password" placeholder="Leave blank to keep current"/>
+          </div>
+          <button class="btn-primary" style="margin-top:8px" onclick="showToast('Settings saved!','success')">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ADMIN PAGE ═══════════════ -->
+<div class="page" id="page-admin">
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">ADMIN <em>PANEL</em></h2>
+      <button class="btn-primary" onclick="openCreateEvent()">+ New Event</button>
+    </div>
+
+    <div class="stats-grid" style="margin-bottom:40px">
+      <div class="stat-card">
+        <div class="stat-card-num">₦12.4M</div>
+        <div class="stat-card-label">Total Revenue</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-num">8,342</div>
+        <div class="stat-card-label">Tickets Sold</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-num">24</div>
+        <div class="stat-card-label">Active Events</div>
+      </div>
+    </div>
+
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Event</th>
+          <th>Date</th>
+          <th>Location</th>
+          <th>Tickets Sold</th>
+          <th>Revenue</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="adminTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- CREATE EVENT MODAL -->
+<div class="overlay" id="createEventOverlay">
+  <div class="modal" style="position:relative;max-width:600px">
+    <button class="modal-close" onclick="closeModal('createEventOverlay')">✕</button>
+    <div class="modal-title">NEW EVENT</div>
+    <p class="modal-sub">Add a new concert to the platform</p>
+    <div class="form-group">
+      <label class="form-label">Event Name</label>
+      <input class="form-input" placeholder="e.g. Burna Boy Live in Lagos" id="newEventName"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Artist</label>
+        <input class="form-input" placeholder="Artist name" id="newEventArtist"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Genre</label>
+        <select class="form-input search-select" id="newEventGenre">
+          <option>Afrobeats</option><option>Hip-hop</option><option>R&B</option>
+          <option>Highlife</option><option>Amapiano</option><option>Afro-fusion</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input class="form-input" type="date" id="newEventDate"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Time</label>
+        <input class="form-input" type="time" id="newEventTime"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Venue</label>
+      <input class="form-input" placeholder="e.g. Eko Atlantic City Arena" id="newEventVenue"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Location</label>
+      <select class="form-input search-select" id="newEventLocation">
+        <option>Lagos</option><option>Abuja</option><option>Port Harcourt</option>
+        <option>London</option><option>New York</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Starting Price (₦)</label>
+        <input class="form-input" type="number" placeholder="5000" id="newEventPrice"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Total Capacity</label>
+        <input class="form-input" type="number" placeholder="5000" id="newEventCap"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Event Emoji / Icon</label>
+      <input class="form-input" placeholder="🎤" id="newEventEmoji" maxlength="2"/>
+    </div>
+    <button class="btn-primary btn-large" style="width:100%;margin-top:8px" onclick="createEvent()">Create Event</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════════
+const EVENTS = [
+  {
+    id: 0, emoji: '🎤', name: 'BURNA BOY LIVE', artist: 'Burna Boy',
+    genre: 'Afrobeats', location: 'Lagos', venue: 'Eko Atlantic City Arena',
+    date: 'Dec 31, 2025', time: '8:00 PM WAT', dateMs: new Date('2025-12-31').getTime(),
+    price: 45000, maxPrice: 150000,
+    desc: 'Ring in the New Year with Grammy Award-winning Burna Boy at the most anticipated concert of the decade. Expect hits spanning his entire catalog alongside surprise guests and a world-class production.',
+    badge: 'hot', popularity: 99, sold: 3200, capacity: 5000,
+    tiers: [
+      { name: 'Early Bird', price: 45000, perks: 'General admission, standing area', avail: 50 },
+      { name: 'Regular', price: 65000, perks: 'General admission with seat', avail: 800 },
+      { name: 'VIP', price: 120000, perks: 'Premium seating, complimentary drinks, meet & greet access', avail: 30 },
+      { name: 'VVIP', price: 150000, perks: 'Front row, backstage pass, signed merch, meet & greet', avail: 8 },
+    ]
+  },
+  {
+    id: 1, emoji: '🎸', name: 'WIZKID FC LIVE', artist: 'Wizkid',
+    genre: 'Afrobeats', location: 'Lagos', venue: 'Tafawa Balewa Square',
+    date: 'Jan 18, 2026', time: '7:30 PM WAT', dateMs: new Date('2026-01-18').getTime(),
+    price: 35000, maxPrice: 100000,
+    desc: 'Big Wiz returns to Lagos for an unforgettable night of Afrobeats magic. Wizkid FC, this one is for you!',
+    badge: 'hot', popularity: 95, sold: 4100, capacity: 6000,
+    tiers: [
+      { name: 'Regular', price: 35000, perks: 'General admission standing', avail: 1500 },
+      { name: 'Gold', price: 70000, perks: 'Reserved seating, complimentary drinks', avail: 200 },
+      { name: 'Platinum', price: 100000, perks: 'Front section, open bar, merch package', avail: 25 },
+    ]
+  },
+  {
+    id: 2, emoji: '🎷', name: 'FEMI KUTI JAZZ NIGHT', artist: 'Femi Kuti',
+    genre: 'Highlife', location: 'Lagos', venue: 'New Afrika Shrine',
+    date: 'Feb 1, 2026', time: '9:00 PM WAT', dateMs: new Date('2026-02-01').getTime(),
+    price: 8000, maxPrice: 25000,
+    desc: 'Experience the legendary New Afrika Shrine as Femi Kuti keeps the flame of Afrobeat alive with a spectacular live performance.',
+    badge: 'new', popularity: 78, sold: 320, capacity: 800,
+    tiers: [
+      { name: 'General', price: 8000, perks: 'Standing area', avail: 400 },
+      { name: 'Table', price: 25000, perks: 'Reserved table for 4, waiter service', avail: 12 },
+    ]
+  },
+  {
+    id: 3, emoji: '🎧', name: 'DAVIDO 30BG FEST', artist: 'Davido',
+    genre: 'Afrobeats', location: 'Abuja', venue: 'Abuja International Conference Centre',
+    date: 'Mar 15, 2026', time: '6:00 PM WAT', dateMs: new Date('2026-03-15').getTime(),
+    price: 25000, maxPrice: 120000,
+    desc: 'OBO is bringing the biggest festival experience to Abuja! A full day of music, culture, and vibes with Davido and friends.',
+    badge: 'soon', popularity: 90, sold: 2000, capacity: 8000,
+    tiers: [
+      { name: 'Regular', price: 25000, perks: 'General festival pass', avail: 4000 },
+      { name: 'Premium', price: 60000, perks: 'Premium area access, welcome drink', avail: 500 },
+      { name: 'VIP', price: 120000, perks: 'Exclusive VIP lounge, backstage access', avail: 50 },
+    ]
+  },
+  {
+    id: 4, emoji: '🎵', name: 'ASAKE LIVE IN LONDON', artist: 'Asake',
+    genre: 'Afro-fusion', location: 'London', venue: 'The O2 Arena',
+    date: 'Apr 5, 2026', time: '7:00 PM GMT', dateMs: new Date('2026-04-05').getTime(),
+    price: 55000, maxPrice: 200000,
+    desc: 'Mr Money With the Vibe takes his electrifying show to London\'s iconic O2 Arena for a night you will never forget.',
+    badge: 'hot', popularity: 88, sold: 5800, capacity: 12000,
+    tiers: [
+      { name: 'Standard', price: 55000, perks: 'General admission', avail: 5000 },
+      { name: 'Floor', price: 100000, perks: 'Floor standing near stage', avail: 800 },
+      { name: 'VIP Box', price: 200000, perks: 'Private box, catered service, merch', avail: 10 },
+    ]
+  },
+  {
+    id: 5, emoji: '🎺', name: 'AMAPIANO NIGHT', artist: 'Various Artists',
+    genre: 'Amapiano', location: 'Port Harcourt', venue: 'Panorama Events Centre',
+    date: 'May 20, 2026', time: '9:00 PM WAT', dateMs: new Date('2026-05-20').getTime(),
+    price: 10000, maxPrice: 50000,
+    desc: 'PH\'s biggest Amapiano event featuring top DJs and artists from South Africa and Nigeria. Log, log, log!',
+    badge: 'new', popularity: 72, sold: 600, capacity: 2000,
+    tiers: [
+      { name: 'General', price: 10000, perks: 'Standing admission', avail: 1000 },
+      { name: 'VIP', price: 50000, perks: 'Lounge access, reserved table', avail: 60 },
+    ]
+  },
+];
+
+const ARTISTS = [
+  { name: 'Burna Boy', genre: 'Afrobeats', emoji: '🎤', events: '2 upcoming' },
+  { name: 'Wizkid', genre: 'Afrobeats', emoji: '⭐', events: '1 upcoming' },
+  { name: 'Davido', genre: 'Afrobeats', emoji: '🎸', events: '1 upcoming' },
+  { name: 'Asake', genre: 'Afro-fusion', emoji: '🎵', events: '1 upcoming' },
+  { name: 'Femi Kuti', genre: 'Highlife', emoji: '🎷', events: '1 upcoming' },
+  { name: 'Rema', genre: 'Afrobeats', emoji: '🎶', events: 'Coming soon' },
+  { name: 'Tems', genre: 'R&B', emoji: '🎙️', events: 'Coming soon' },
+  { name: 'Fireboy', genre: 'Afropop', emoji: '🔥', events: 'Coming soon' },
+];
+
+const GENRES = ['Afrobeats', 'Hip-hop', 'R&B', 'Highlife', 'Amapiano', 'Afro-fusion', 'Afropop', 'Gospel', 'Jazz'];
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let state = {
+  currentPage: 'home',
+  selectedEvent: null,
+  selectedTier: 0,
+  qty: 1,
+  cart: null,
+  loggedIn: false,
+  user: { name: 'Amara Johnson', email: 'amara@email.com' },
+  activeGenre: null,
+  sortMode: 'popular',
+  wishlist: [1, 3],
+  myTickets: [
+    { eventId: 0, tier: 'VIP', qty: 2, date: 'Dec 31, 2025', status: 'upcoming', id: 'TKT-A1B2-C3D4', total: 240000 },
+    { eventId: 4, tier: 'Floor', qty: 1, date: 'Apr 5, 2026', status: 'upcoming', id: 'TKT-E5F6-G7H8', total: 100000 },
+    { eventId: 2, tier: 'General', qty: 3, date: 'Oct 15, 2024', status: 'past', id: 'TKT-I9J0-K1L2', total: 24000 },
+  ],
+  adminEvents: [...EVENTS],
+};
+
+// ══════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  state.currentPage = name;
+  window.scrollTo(0, 0);
+
+  if (name === 'events') renderEventsPage();
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'admin') renderAdmin();
+  if (name === 'home') renderHome();
+}
+
+// ══════════════════════════════════════════════
+//  RENDER HOME
+// ══════════════════════════════════════════════
+function renderHome() {
+  // Featured events
+  const grid = document.getElementById('homeFeaturedGrid');
+  grid.innerHTML = '';
+  EVENTS.slice(0, 3).forEach(ev => grid.appendChild(createEventCard(ev)));
+
+  // Artists
+  const sc = document.getElementById('artistsScroll');
+  sc.innerHTML = '';
+  ARTISTS.forEach(a => {
+    const el = document.createElement('div');
+    el.className = 'artist-card';
+    el.innerHTML = `<div class="artist-avatar">${a.emoji}</div>
+      <div class="artist-name">${a.name}</div>
+      <div class="artist-genre">${a.genre}</div>
+      <div class="artist-events">${a.events}</div>`;
+    sc.appendChild(el);
+  });
+
+  // Genre tags
+  const gt = document.getElementById('homeGenreTags');
+  gt.innerHTML = '';
+  GENRES.forEach(g => {
+    const el = document.createElement('div');
+    el.className = 'genre-tag' + (state.activeGenre === g ? ' active' : '');
+    el.textContent = g;
+    el.onclick = () => { state.activeGenre = g; showPage('events'); };
+    gt.appendChild(el);
+  });
+}
+
+// ══════════════════════════════════════════════
+//  EVENT CARDS
+// ══════════════════════════════════════════════
+function createEventCard(ev) {
+  const card = document.createElement('div');
+  card.className = 'event-card';
+  const pct = Math.round(ev.sold / ev.capacity * 100);
+  const lowStock = pct > 80;
+  const gradients = [
+    'linear-gradient(135deg,#1a0a0a,#2a0a1a)',
+    'linear-gradient(135deg,#0a0a1a,#1a0a2a)',
+    'linear-gradient(135deg,#0a1a0a,#1a2a1a)',
+    'linear-gradient(135deg,#1a1a0a,#2a2a0a)',
+    'linear-gradient(135deg,#1a0a1a,#2a0a2a)',
+    'linear-gradient(135deg,#0a1a1a,#0a2a2a)',
+  ];
+  card.innerHTML = `
+    <div class="event-img" style="background:${gradients[ev.id % gradients.length]}">
+      ${ev.emoji}
+      <div class="event-img-overlay"></div>
+      ${ev.badge ? `<div class="event-badge ${ev.badge}">${ev.badge === 'hot' ? '🔥 Hot' : ev.badge === 'new' ? '✨ New' : '⚡ Soon'}</div>` : ''}
+    </div>
+    <div class="event-body">
+      <div class="event-genre">${ev.genre} · ${ev.location}</div>
+      <div class="event-title">${ev.name}</div>
+      <div class="event-meta">
+        <div class="event-meta-row"><span class="meta-icon">📅</span>${ev.date} · ${ev.time}</div>
+        <div class="event-meta-row"><span class="meta-icon">📍</span>${ev.venue}</div>
+      </div>
+      <div class="event-footer">
+        <div>
+          <div class="event-price">₦${(ev.price/1000).toFixed(0)}K <small>from</small></div>
+          <div class="event-avail ${lowStock ? 'low' : ''}">${lowStock ? `🔴 Only ${ev.capacity - ev.sold} left!` : `${ev.capacity - ev.sold} tickets available`}</div>
+        </div>
+        <button class="btn-sm" onclick="event.stopPropagation();showEventDetail(${ev.id})">Get Tickets</button>
+      </div>
+    </div>`;
+  card.onclick = () => showEventDetail(ev.id);
+  return card;
+}
+
+// ══════════════════════════════════════════════
+//  EVENTS PAGE
+// ══════════════════════════════════════════════
+function renderEventsPage() {
+  // Genre tags
+  const gt = document.getElementById('eventsGenreTags');
+  if (gt) {
+    gt.innerHTML = '';
+    ['All', ...GENRES].forEach(g => {
+      const el = document.createElement('div');
+      el.className = 'genre-tag' + ((g === 'All' && !state.activeGenre) || state.activeGenre === g ? ' active' : '');
+      el.textContent = g;
+      el.onclick = () => { state.activeGenre = g === 'All' ? null : g; renderEventsPage(); };
+      gt.appendChild(el);
+    });
+  }
+  filterEvents();
+}
+
+function filterEvents() {
+  let evs = [...state.adminEvents.length ? state.adminEvents : EVENTS];
+
+  const q = (document.getElementById('eventsSearch')?.value || '').toLowerCase();
+  if (q) evs = evs.filter(e => e.name.toLowerCase().includes(q) || e.artist.toLowerCase().includes(q) || e.genre.toLowerCase().includes(q));
+
+  if (state.activeGenre) evs = evs.filter(e => e.genre === state.activeGenre);
+
+  // Location checkboxes
+  const locChecked = [...document.querySelectorAll('.filter-option input[type=checkbox]:checked')].map(i => i.value);
+  if (locChecked.length) evs = evs.filter(e => locChecked.includes(e.location));
+
+  // Price
+  const maxP = parseInt(document.getElementById('priceRange')?.value || 200000);
+  evs = evs.filter(e => e.price <= maxP);
+
+  // Sort
+  if (state.sortMode === 'popular') evs.sort((a, b) => b.popularity - a.popularity);
+  else if (state.sortMode === 'date') evs.sort((a, b) => a.dateMs - b.dateMs);
+  else if (state.sortMode === 'price-asc') evs.sort((a, b) => a.price - b.price);
+  else if (state.sortMode === 'price-desc') evs.sort((a, b) => b.price - a.price);
+
+  const grid = document.getElementById('eventsGrid');
+  const count = document.getElementById('eventsCount');
+  if (!grid) return;
+  grid.innerHTML = '';
+  if (count) count.textContent = evs.length;
+  evs.forEach(ev => grid.appendChild(createEventCard(ev)));
+  if (!evs.length) grid.innerHTML = '<div style="color:var(--muted2);padding:40px;text-align:center;grid-column:1/-1">No events found. Try adjusting your filters.</div>';
+}
+
+function sortEvents(mode, btn) {
+  state.sortMode = mode;
+  document.querySelectorAll('.sort-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  filterEvents();
+}
+
+function clearFilters() {
+  document.querySelectorAll('.filter-option input').forEach(i => i.checked = false);
+  const pr = document.getElementById('priceRange');
+  if (pr) pr.value = 200000;
+  updatePriceLabel(200000);
+  state.activeGenre = null;
+  renderEventsPage();
+}
+
+function updatePriceLabel(val) {
+  const el = document.getElementById('priceLabel');
+  if (el) el.textContent = val >= 200000 ? 'Any price' : `Up to ₦${parseInt(val).toLocaleString()}`;
+}
+
+function handleSearch(val) {
+  if (val.length > 1) { state.searchQ = val; showPage('events'); }
+}
+
+// ══════════════════════════════════════════════
+//  EVENT DETAIL
+// ══════════════════════════════════════════════
+function showEventDetail(id) {
+  const ev = state.adminEvents.find(e => e.id === id) || EVENTS.find(e => e.id === id);
+  state.selectedEvent = ev;
+  state.selectedTier = 0;
+  state.qty = 1;
+
+  const gradients = [
+    'linear-gradient(135deg,#1a0a0a,#2a0a1a)',
+    'linear-gradient(135deg,#0a0a1a,#1a0a2a)',
+    'linear-gradient(135deg,#0a1a0a,#1a2a1a)',
+    'linear-gradient(135deg,#1a1a0a,#2a2a0a)',
+    'linear-gradient(135deg,#1a0a1a,#2a0a2a)',
+    'linear-gradient(135deg,#0a1a1a,#0a2a2a)',
+  ];
+  const bg = gradients[ev.id % gradients.length];
+  const pct = Math.round(ev.sold / ev.capacity * 100);
+
+  const tiersHTML = ev.tiers.map((t, i) => `
+    <div class="tier-card ${i === 0 ? 'selected' : ''}" id="tier_${i}" onclick="selectTier(${i})">
+      ${i === 0 ? '<div style="position:absolute;top:16px;right:16px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">✓</div>' : ''}
+      <div class="tier-name">${t.name}</div>
+      <div class="tier-perks">${t.perks}</div>
+      <div class="tier-price">₦${t.price.toLocaleString()} <small>/ ticket</small></div>
+      <div class="tier-avail ${t.avail < 50 ? 'low' : ''}">${t.avail < 50 ? `⚡ Only ${t.avail} left!` : `${t.avail} available`}</div>
+    </div>`).join('');
+
+  document.getElementById('detailContent').innerHTML = `
+    <div class="event-detail-hero">
+      <div class="event-detail-bg">${ev.emoji}</div>
+      <div class="event-detail-overlay"></div>
+      <div class="event-detail-title-block">
+        <div class="event-detail-genre">${ev.genre}</div>
+        <div class="event-detail-name">${ev.name}</div>
+        <div class="event-detail-meta">
+          <div class="event-detail-meta-item">📅 ${ev.date}</div>
+          <div class="event-detail-meta-item">🕐 ${ev.time}</div>
+          <div class="event-detail-meta-item">📍 ${ev.venue}, ${ev.location}</div>
+          <div class="event-detail-meta-item">👥 ${pct}% sold</div>
+        </div>
+      </div>
+    </div>
+    <div class="event-detail-body">
+      <div>
+        <div class="countdown-block" id="countdown_${ev.id}">
+          <div class="countdown-unit"><div class="countdown-num" id="cd-days">--</div><div class="countdown-label">Days</div></div>
+          <div class="countdown-unit"><div class="countdown-num" id="cd-hours">--</div><div class="countdown-label">Hours</div></div>
+          <div class="countdown-unit"><div class="countdown-num" id="cd-mins">--</div><div class="countdown-label">Mins</div></div>
+          <div class="countdown-unit"><div class="countdown-num" id="cd-secs">--</div><div class="countdown-label">Secs</div></div>
+        </div>
+        <div class="about-section">
+          <h3>ABOUT THE EVENT</h3>
+          <p class="about-text">${ev.desc}</p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:32px">
+            <div class="tag">🎤 ${ev.artist}</div>
+            <div class="tag">🎵 ${ev.genre}</div>
+            <div class="tag">📍 ${ev.location}</div>
+            <div class="tag">👥 ${ev.capacity.toLocaleString()} capacity</div>
+          </div>
+        </div>
+        <h3 style="font-family:var(--font-display);font-size:32px;margin-bottom:16px">VENUE</h3>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:32px">
+          <div style="font-weight:600;margin-bottom:4px">${ev.venue}</div>
+          <div style="color:var(--muted2);font-size:14px">${ev.location}</div>
+          <div style="color:var(--muted);font-size:13px;margin-top:8px">🚗 Parking available · 🚇 Accessible by public transport · ♿ Fully accessible</div>
+        </div>
+      </div>
+      <div class="ticket-panel">
+        <div class="ticket-panel-title">GET TICKETS</div>
+        <div class="ticket-panel-sub">Select your ticket type below</div>
+        ${tiersHTML}
+        <div class="qty-row">
+          <div class="qty-label">Quantity</div>
+          <div class="qty-controls">
+            <button class="qty-btn" onclick="changeQty(-1)">−</button>
+            <div class="qty-num" id="qtyDisplay">1</div>
+            <button class="qty-btn" onclick="changeQty(1)">+</button>
+          </div>
+        </div>
+        <div class="total-row">
+          <div class="total-label">Total</div>
+          <div class="total-amount" id="totalDisplay">₦${ev.tiers[0].price.toLocaleString()}</div>
+        </div>
+        <button class="btn-buy" onclick="startCheckout()">🎫 Buy Tickets</button>
+        <div style="text-align:center;margin-top:12px;font-size:12px;color:var(--muted)">
+          🔒 Secure checkout · No hidden fees
+        </div>
+      </div>
+    </div>`;
+
+  showPage('detail');
+  startCountdown(ev.dateMs);
+}
+
+function selectTier(i) {
+  state.selectedTier = i;
+  document.querySelectorAll('.tier-card').forEach((c, idx) => {
+    c.classList.toggle('selected', idx === i);
+    const check = c.querySelector('div[style*="border-radius:50%"]');
+    if (check) check.remove();
+    if (idx === i) {
+      const chk = document.createElement('div');
+      chk.style = 'position:absolute;top:16px;right:16px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center';
+      chk.textContent = '✓';
+      c.appendChild(chk);
+    }
+  });
+  updateTotal();
+}
+
+function changeQty(delta) {
+  state.qty = Math.max(1, Math.min(10, state.qty + delta));
+  document.getElementById('qtyDisplay').textContent = state.qty;
+  updateTotal();
+}
+
+function updateTotal() {
+  const tier = state.selectedEvent.tiers[state.selectedTier];
+  const total = tier.price * state.qty;
+  document.getElementById('totalDisplay').textContent = `₦${total.toLocaleString()}`;
+}
+
+function startCountdown(targetMs) {
+  clearInterval(window._cdInterval);
+  window._cdInterval = setInterval(() => {
+    const diff = targetMs - Date.now();
+    if (diff <= 0) { clearInterval(window._cdInterval); return; }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    const fmt = n => String(n).padStart(2, '0');
+    const cd = document.getElementById('cd-days');
+    if (cd) {
+      cd.textContent = fmt(d);
+      document.getElementById('cd-hours').textContent = fmt(h);
+      document.getElementById('cd-mins').textContent = fmt(m);
+      document.getElementById('cd-secs').textContent = fmt(s);
+    }
+  }, 1000);
+}
+
+// ══════════════════════════════════════════════
+//  CHECKOUT
+// ══════════════════════════════════════════════
+function startCheckout() {
+  if (!state.loggedIn) {
+    showToast('Please log in to continue', 'info');
+    openAuth('login');
+    state._pendingCheckout = true;
+    return;
+  }
+  buildCheckout();
+  showPage('checkout');
+}
+
+function buildCheckout() {
+  const ev = state.selectedEvent;
+  const tier = ev.tiers[state.selectedTier];
+  const subtotal = tier.price * state.qty;
+  const fee = Math.round(subtotal * 0.05);
+  const total = subtotal + fee;
+  state.cart = { ev, tier, qty: state.qty, subtotal, fee, total };
+
+  document.getElementById('checkoutOrderSummary').innerHTML = `
+    <div class="order-event-row">
+      <div class="order-event-emoji">${ev.emoji}</div>
+      <div>
+        <div class="order-event-name">${ev.name}</div>
+        <div class="order-event-meta">${ev.date} · ${ev.location}</div>
+      </div>
+    </div>
+    <div class="order-line muted"><span>${tier.name} × ${state.qty}</span><span>₦${subtotal.toLocaleString()}</span></div>
+    <div class="order-line muted"><span>Service fee (5%)</span><span>₦${fee.toLocaleString()}</span></div>
+    <div class="order-line total"><span>Total</span><span class="amount">₦${total.toLocaleString()}</span></div>`;
+}
+
+function processPayment() {
+  const num = document.getElementById('cardNum')?.value?.replace(/\s/g, '');
+  if (!num || num.length < 16) { showToast('Please enter a valid card number', 'error'); return; }
+
+  // Simulate payment processing
+  showToast('Processing payment...', 'info');
+  setTimeout(() => {
+    const ev = state.cart.ev;
+    const tier = state.cart.tier;
+    const ticketId = 'TKT-' + Math.random().toString(36).substring(2,6).toUpperCase() + '-' + Math.random().toString(36).substring(2,6).toUpperCase();
+
+    document.getElementById('et-event').textContent = ev.name;
+    document.getElementById('et-artist').textContent = ev.venue + ' · ' + ev.location;
+    document.getElementById('et-date').textContent = ev.date;
+    document.getElementById('et-time').textContent = ev.time;
+    document.getElementById('et-tier').textContent = tier.name;
+    document.getElementById('et-qty').textContent = '×' + state.qty;
+    document.getElementById('et-tier2').textContent = tier.name.toUpperCase() + ' PASS';
+    document.getElementById('et-id').textContent = ticketId;
+
+    // Generate QR code
+    document.getElementById('qrcode').innerHTML = '';
+    try {
+      new QRCode(document.getElementById('qrcode'), {
+        text: ticketId + '|' + ev.name + '|' + ev.date,
+        width: 100, height: 100,
+        colorDark: '#000000', colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    } catch(e) {}
+
+    // Add to myTickets
+    state.myTickets.unshift({
+      eventId: ev.id, tier: tier.name, qty: state.qty,
+      date: ev.date, status: 'upcoming', id: ticketId, total: state.cart.total
+    });
+
+    showToast('Payment successful! 🎉', 'success');
+    showPage('confirm');
+  }, 1800);
+}
+
+function downloadTicket() {
+  showToast('Downloading your e-ticket...', 'info');
+  setTimeout(() => showToast('E-ticket downloaded! Check your downloads folder.', 'success'), 1500);
+}
+
+// ══════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════
+function renderDashboard() {
+  // Tickets
+  const list = document.getElementById('dashTicketsList');
+  list.innerHTML = '';
+  state.myTickets.forEach(t => {
+    const ev = EVENTS.find(e => e.id === t.eventId) || { emoji: '🎫', name: 'Event', venue: '—', location: '—' };
+    const el = document.createElement('div');
+    el.className = 'ticket-history-card';
+    el.innerHTML = `
+      <div class="ticket-event-icon">${ev.emoji}</div>
+      <div class="ticket-event-info">
+        <div class="ticket-event-name">${ev.name}</div>
+        <div class="ticket-event-meta">${t.tier} · ×${t.qty} · ${t.date} · ${ev.venue}</div>
+        <div style="margin-top:6px">
+          <div class="ticket-download-btn" onclick="showToast('Downloading ${t.id}...','info')">⬇ Download Ticket · ${t.id}</div>
+        </div>
+      </div>
+      <div>
+        <div class="ticket-status ${t.status}">${t.status}</div>
+        <div style="font-family:var(--font-display);font-size:20px;margin-top:8px;text-align:right">₦${t.total.toLocaleString()}</div>
+      </div>`;
+    list.appendChild(el);
+  });
+
+  // Wishlist
+  const wg = document.getElementById('wishlistGrid');
+  wg.innerHTML = '';
+  state.wishlist.forEach(id => {
+    const ev = EVENTS.find(e => e.id === id);
+    if (ev) wg.appendChild(createEventCard(ev));
+  });
+
+  // History (all past)
+  const hl = document.getElementById('historyList');
+  hl.innerHTML = '';
+  state.myTickets.filter(t => t.status === 'past').forEach(t => {
+    const ev = EVENTS.find(e => e.id === t.eventId) || {};
+    const el = document.createElement('div');
+    el.className = 'ticket-history-card';
+    el.innerHTML = `
+      <div class="ticket-event-icon">${ev.emoji || '🎫'}</div>
+      <div class="ticket-event-info">
+        <div class="ticket-event-name">${ev.name || 'Event'}</div>
+        <div class="ticket-event-meta">${t.tier} · ×${t.qty} · ${t.date}</div>
+      </div>
+      <div class="ticket-status past">attended</div>`;
+    hl.appendChild(el);
+  });
+}
+
+function switchDashTab(tab, el) {
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  el.classList.add('active');
+  ['tickets','wishlist','history','settings'].forEach(t => {
+    document.getElementById('dash' + t.charAt(0).toUpperCase() + t.slice(1)).style.display = t === tab ? '' : 'none';
+  });
+}
+
+// ══════════════════════════════════════════════
+//  ADMIN
+// ══════════════════════════════════════════════
+function renderAdmin() {
+  const tbody = document.getElementById('adminTableBody');
+  tbody.innerHTML = '';
+  state.adminEvents.forEach((ev, i) => {
+    const sold = ev.sold;
+    const rev = ev.tiers.reduce((acc, t) => acc + t.price * Math.floor(Math.random() * 10 + 5), 0);
+    const pct = Math.round(sold / ev.capacity * 100);
+    const status = pct >= 100 ? 'sold' : ev.badge === 'hot' ? 'live' : 'upcoming';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${ev.name}</strong><br><span style="color:var(--muted);font-size:12px">${ev.artist}</span></td>
+      <td>${ev.date}</td>
+      <td>${ev.location}</td>
+      <td>${sold.toLocaleString()} <span style="color:var(--muted);font-size:12px">/ ${ev.capacity.toLocaleString()}</span></td>
+      <td>₦${(ev.price * sold / 1000).toFixed(0)}K</td>
+      <td><span class="admin-tag ${status}">${status}</span></td>
+      <td>
+        <button class="action-btn" onclick="showToast('Editing ${ev.name}','info')">✏️ Edit</button>
+        <button class="action-btn" onclick="deleteEvent(${i})">🗑️ Delete</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function deleteEvent(i) {
+  if (confirm('Delete this event?')) {
+    state.adminEvents.splice(i, 1);
+    renderAdmin();
+    showToast('Event deleted', 'success');
+  }
+}
+
+function openCreateEvent() { openModal('createEventOverlay'); }
+
+function createEvent() {
+  const name = document.getElementById('newEventName').value;
+  if (!name) { showToast('Event name is required', 'error'); return; }
+  const newEv = {
+    id: Date.now(), emoji: document.getElementById('newEventEmoji').value || '🎵',
+    name: name.toUpperCase(),
+    artist: document.getElementById('newEventArtist').value || 'Artist TBA',
+    genre: document.getElementById('newEventGenre').value,
+    location: document.getElementById('newEventLocation').value,
+    venue: document.getElementById('newEventVenue').value || 'Venue TBA',
+    date: document.getElementById('newEventDate').value || 'TBA',
+    time: '8:00 PM', dateMs: new Date(document.getElementById('newEventDate').value).getTime() || Date.now() + 86400000*30,
+    price: parseInt(document.getElementById('newEventPrice').value) || 10000,
+    maxPrice: parseInt(document.getElementById('newEventPrice').value) * 3 || 30000,
+    desc: 'An amazing live music experience.',
+    badge: 'new', popularity: 50,
+    sold: 0, capacity: parseInt(document.getElementById('newEventCap').value) || 1000,
+    tiers: [
+      { name: 'Regular', price: parseInt(document.getElementById('newEventPrice').value) || 10000, perks: 'General admission', avail: 800 },
+    ]
+  };
+  state.adminEvents.push(newEv);
+  closeModal('createEventOverlay');
+  renderAdmin();
+  showToast(`"${newEv.name}" created! 🎉`, 'success');
+}
+
+// ══════════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════════
+function openAuth(tab) { openModal('authOverlay'); switchAuthTab(tab); }
+
+function switchAuthTab(tab) {
+  document.getElementById('loginTab').classList.toggle('active', tab === 'login');
+  document.getElementById('signupTab').classList.toggle('active', tab === 'signup');
+  document.getElementById('loginForm').style.display = tab === 'login' ? '' : 'none';
+  document.getElementById('signupForm').style.display = tab === 'signup' ? '' : 'none';
+}
+
+function handleLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const pass = document.getElementById('loginPass').value;
+  if (!email || !pass) { showToast('Please fill all fields', 'error'); return; }
+  state.loggedIn = true;
+  state.user.email = email;
+  closeModal('authOverlay');
+  showToast('Welcome back! 🎤', 'success');
+  document.getElementById('dashEmail').textContent = email;
+  if (state._pendingCheckout) { state._pendingCheckout = false; buildCheckout(); showPage('checkout'); }
+}
+
+function handleSignup() {
+  state.loggedIn = true;
+  closeModal('authOverlay');
+  showToast('Account created! Welcome to STAGEFRONT 🎉', 'success');
+  if (state._pendingCheckout) { state._pendingCheckout = false; buildCheckout(); showPage('checkout'); }
+}
+
+// ══════════════════════════════════════════════
+//  MODALS
+// ══════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('overlay')) closeModal(e.target.id);
+});
+
+// ══════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════
+function showToast(msg, type = 'info') {
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  const tc = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<div class="toast-icon">${icons[type]}</div><div class="toast-msg">${msg}</div>`;
+  tc.appendChild(t);
+  requestAnimationFrame(() => { requestAnimationFrame(() => { t.classList.add('show'); }); });
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3500);
+}
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+renderHome();
+</script>
+</body>
+</html>
